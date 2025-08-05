@@ -5,8 +5,12 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         scene.physics.add.existing(this);
 
         this.setScale(2);
+
+        this.body.setSize(40, 60);
+        this.body.setOffset(44, 68);
+
         this.setCollideWorldBounds(true);
-        
+
         this.play('idle');
         this.on('animationcomplete', (anim) => {
             if (anim.key === 'attack') {
@@ -37,19 +41,28 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     updateInput(cursors, keyW, keyA, keyS, keyD, keySpace) {
         const speed = 200 / 60;
 
-        if (cursors.left.isDown || keyA.isDown) this.x -= speed;
-        if (cursors.right.isDown || keyD.isDown) this.x += speed;
-        if (cursors.up.isDown || keyW.isDown) this.y -= speed;
-        if (cursors.down.isDown || keyS.isDown) this.y += speed;
+        if (!this.isAttacking) {
+            if (cursors.left.isDown || keyA.isDown) this.x -= speed;
+            if (cursors.right.isDown || keyD.isDown) this.x += speed;
+            if (cursors.up.isDown || keyW.isDown) this.y -= speed;
+            if (cursors.down.isDown || keyS.isDown) this.y += speed;
+        }
 
         const now = this.scene.time.now;
+        this.attack = keySpace.isDown;
 
-        if (keySpace.isDown && !this.isAttacking && (now - this.lastAttackTime > 500)) {
+        if (this.attack && !this.isAttacking && (now - this.lastAttackTime > 500)) {
             this.isAttacking = true;
             this.lastAttackTime = now;
             this.setTexture('playerAttack');
             this.play('attack');
+            //this.body.setSize(this.width, this.height, true);
         }
 
+        if (!this.isAttacking && this.anims.currentAnim?.key !== 'idle') {
+            this.setTexture('playerIdle');
+            this.play('idle', true);
+            //this.body.setSize(this.width, this.height, true);
+        }
     }
 }
